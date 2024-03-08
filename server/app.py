@@ -120,7 +120,7 @@ def generate_email():
         email = {}
         email['time_generated'] = datetime.now()
         try:
-            subj = re.findall(r'Subject[^\n]*\n\n', completion.choices[0].message.content)[9][:-2]
+            subj = re.findall(r'Subject[^\n]*\n\n', completion.choices[0].message.content)[0][9:-2]
         except:
             raise Exception("Could not get subject from GPT output.")
         try:

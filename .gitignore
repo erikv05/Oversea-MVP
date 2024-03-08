@@ -4,3 +4,4 @@ decorators
 venv
 serviceAccountKey.json
 .env
+server/token.json
