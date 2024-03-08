@@ -83,9 +83,9 @@ function App() {
   };
 
   return (
-    <div>
-      <p className="text-black font-semibold text-3xl mb-5">Oversea Demo</p>
-      <div className="flex">
+    <div className="flex justify-center items-center flex-col">
+      <p className="text-black font-semibold text-3xl m-5">Oversea Demo</p>
+      <div className="flex ">
         <label
           for="csv_upload"
           className="border-none rounded-sm bg-blue-500 px-2 py-1 text-white font-medium mr-2 hover:bg-blue-600"
