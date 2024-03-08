@@ -178,6 +178,7 @@ def send_email():
             emails.append(email)
         
         url = "http://127.0.0.1:8080/generate-email"
+        return_emails = []
 
         for email in emails:
             res = requests.post(url, json = email)
@@ -185,8 +186,13 @@ def send_email():
             content = res.json()['content']
             address = email['address']
             use_gmail_to_send(subject, content, address)
+            try:
+                return_emails.append({'customerName': email['customerName'], 'address': email['address'], 'subject': subject, 'content': content, 'time': datetime.now()})
+            except Exception as e:
+                print(e)
         
-        return jsonify({}), 200
+        
+        return jsonify({'emails': return_emails}), 200
 
 
     except Exception as e:
