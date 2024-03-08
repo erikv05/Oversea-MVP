@@ -1,6 +1,5 @@
-import "./App.css";
+import "./input.css";
 import { useState } from "react";
-
 
 function App() {
   const [file, setFile] = useState(null);
@@ -36,22 +35,21 @@ function App() {
     reader.readAsText(file);
   };
 
+  const readUploadedFileAsText = (inputFile) => {
+    const temporaryFileReader = new FileReader();
 
-const readUploadedFileAsText = (inputFile) => {
-  const temporaryFileReader = new FileReader();
+    return new Promise((resolve, reject) => {
+      temporaryFileReader.onerror = () => {
+        temporaryFileReader.abort();
+        reject(new DOMException("Problem parsing input file."));
+      };
 
-  return new Promise((resolve, reject) => {
-    temporaryFileReader.onerror = () => {
-      temporaryFileReader.abort();
-      reject(new DOMException("Problem parsing input file."));
-    };
-
-    temporaryFileReader.onload = () => {
-      resolve(temporaryFileReader.result);
-    };
-    temporaryFileReader.readAsText(inputFile);
-  });
-};
+      temporaryFileReader.onload = () => {
+        resolve(temporaryFileReader.result);
+      };
+      temporaryFileReader.readAsText(inputFile);
+    });
+  };
 
   // Mock function to simulate an API call for generating emails
   const generateEmails = async () => {
@@ -62,7 +60,7 @@ const readUploadedFileAsText = (inputFile) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({data: textDat}),
+        body: JSON.stringify({ data: textDat }),
         // Example: Sending user names in request's body, adjust as per your backend needs
       });
 
@@ -86,11 +84,35 @@ const readUploadedFileAsText = (inputFile) => {
 
   return (
     <div>
-      <input type="file" accept="csv" onChange={handleFileChange} />
-      <button onClick={handleFileUpload}>Upload CSV</button>
-      <button onClick={generateEmails} disabled={!userNames.length}>
-        Generate Email
-      </button>
+      <p className="text-black font-semibold text-3xl mb-5">Oversea Demo</p>
+      <div className="flex">
+        <label
+          for="csv_upload"
+          className="border-none rounded-sm bg-blue-500 px-2 py-1 text-white font-medium mr-2 hover:bg-blue-600"
+        >
+          Upload CSV
+        </label>
+        <input
+          id="csv_upload"
+          type="file"
+          className="hidden"
+          accept=".csv"
+          onChange={handleFileChange}
+        />
+        <button
+          className="border-none rounded-sm bg-blue-500 px-2 py-1 text-white font-medium hover:bg-blue-600"
+          onClick={generateEmails}
+        >
+          Generate Email
+        </button>
+      </div>
+      <p className="">{file ? "CSV Uploaded" : ""}</p>
+      {/* <button
+        className="border-none rounded-md bg-blue-500 px-2 py-1 text-white font-medium mr-2"
+        onClick={handleFileUpload}
+      >
+        Upload CSV
+      </button> */}
       <div>
         {userNames.map((name, index) => (
           <div
