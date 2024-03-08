@@ -4,5 +4,5 @@ decorators
 venv
 serviceAccountKey.json
 .env
-server/token.json
 node_modules
+token.json

@@ -52,7 +52,7 @@ def use_gmail_to_send(subject, content, address):
 #     with open("token.json", "w") as token:
 #       token.write(creds.to_json())
   else:
-      raise Exception('oops')
+      raise Exception('no auth token')
 
   # API call
   try:
