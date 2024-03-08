@@ -210,10 +210,10 @@ def generate_email():
         customer_age = data.get('customerAge', '')
         custom_attributes = data.get('customAttributes', [])
 
-        prompt = f"""Write a persoanlized marketing email for {company_name} with the following company description: {company_description}.\nThe product you are selling has this description: {product_description}. The customer you write to is {customer_name}, a {customer_age}-year-old.\nYou may use any or all of the following customer info: """
+        prompt = f"""Write a persoanlized marketing email for {customer_name}, a {customer_age}-year-old customer of {company_name}, which is a company with the following description: {company_description}. You have the following information about the customer:\n"""
         for att in custom_attributes:
             prompt += att['attribute'] + ': ' + att['description'] + ',\n'
-        prompt += "and remember to make the email as personal as possible.\nThe email must be less than 200 words. Make the subject of the email personalized as well."
+        prompt += " and remember to make the email as short and as personalized as possible."
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
