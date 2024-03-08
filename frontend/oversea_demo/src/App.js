@@ -1,6 +1,7 @@
 import "./App.css";
 import { useState } from "react";
 
+
 function App() {
   const [file, setFile] = useState(null);
   const [userNames, setUserNames] = useState([]);
@@ -27,22 +28,41 @@ function App() {
       const rows = text.split("\n");
       const names = rows.map((row) => {
         const columns = row.split(",");
-        // Assuming the name is in the first column
-        return columns[0].trim();
+        // Assuming the name is in the third column
+        return columns[3].trim();
       });
       setUserNames(names);
     };
     reader.readAsText(file);
   };
 
+
+const readUploadedFileAsText = (inputFile) => {
+  const temporaryFileReader = new FileReader();
+
+  return new Promise((resolve, reject) => {
+    temporaryFileReader.onerror = () => {
+      temporaryFileReader.abort();
+      reject(new DOMException("Problem parsing input file."));
+    };
+
+    temporaryFileReader.onload = () => {
+      resolve(temporaryFileReader.result);
+    };
+    temporaryFileReader.readAsText(inputFile);
+  });
+};
+
   // Mock function to simulate an API call for generating emails
   const generateEmails = async () => {
     try {
-      const response = await fetch("http://localhost:8000/generate-email", {
+      const textDat = await readUploadedFileAsText(file);
+      const response = await fetch("http://localhost:8080/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({data: textDat}),
         // Example: Sending user names in request's body, adjust as per your backend needs
       });
 
@@ -66,7 +86,7 @@ function App() {
 
   return (
     <div>
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" accept="csv" onChange={handleFileChange} />
       <button onClick={handleFileUpload}>Upload CSV</button>
       <button onClick={generateEmails} disabled={!userNames.length}>
         Generate Email

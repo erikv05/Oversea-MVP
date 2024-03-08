@@ -10,7 +10,77 @@ import firebase_admin
 from firebase_admin import credentials
 from datetime import datetime
 import re
+import pandas as pd
+from io import StringIO
+import requests
+import json
+# from gmail_api_function import send_email
+import os.path
 
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+# from google_auth_oauthlib.flow import InstalledAppFlow
+import base64
+from email.message import EmailMessage
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+# If modifying these scopes, delete the file token.json.
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+
+def use_gmail_to_send(subject, content, address):
+  """Sends emails based on subject and body.
+  """
+  creds = None
+  # Authentication. Stored in token.json.
+  if os.path.exists("token.json"):
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+  # If there are no (valid) credentials available, let the user log in.
+#   if not creds or not creds.valid:
+#     if creds and creds.expired and creds.refresh_token:
+#       creds.refresh(Request())
+#     else:
+#       flow = InstalledAppFlow.from_client_secrets_file(
+#           "credentials.json", SCOPES
+#       )
+#       creds = flow.run_local_server(port=0)
+#     # Save the credentials for the next run
+#     with open("token.json", "w") as token:
+#       token.write(creds.to_json())
+  else:
+      raise Exception('oops')
+
+  # API call
+  try:
+    service = build("gmail", "v1", credentials=creds)
+    message = EmailMessage()
+
+    message.set_content(content)
+
+    message["To"] = address
+    message["From"] = "erikvank05@gmail.com"
+    message["Subject"] = subject
+
+    # encoded message
+    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+    create_message = {"raw": encoded_message}
+    # pylint: disable=E1101
+    send_message = (
+        service.users()
+        .messages()
+        .send(userId="me", body=create_message)
+        .execute()
+    )
+    print(f'Message Id: {send_message["id"]}')
+  except HttpError as error:
+    print(f"An error occurred: {error}")
+    send_message = None
+  return send_message
 
 #set up flask app
 app = Flask(
@@ -19,7 +89,6 @@ app = Flask(
     static_folder='../frontend/build',
     template_folder='../frontend/build'
 )
-#FIXME: huge security vulnerability
 app.secret_key = os.getenv("SECRET-KEY")
 #load environment variables
 load_dotenv()
@@ -82,6 +151,46 @@ def list_emails():
     except Exception as e:
         print('Error: ', str(e))
         return jsonify({'error': f'An error occurred'}), 500
+    
+@app.route('/send-email', methods=['POST'])
+def send_email():
+    try:
+        csvStringIO = StringIO(request.json['data'])
+        custom_data = pd.read_csv(csvStringIO, sep=",", header=0)
+        for i in range(custom_data.shape[0]):
+            emails = []
+            custom_cols = []
+            for j in range(7, custom_data.shape[1]):
+                col = {}
+                col["attribute"] = custom_data.columns[j]
+                col["description"] = custom_data.iloc[i,j]
+                custom_cols.append(col)
+            email = {
+                'companyDescription': custom_data.iloc[i]["Company Description"],
+                'productDescription': custom_data.iloc[i]["Product Description"],
+                'companyName': custom_data.iloc[i]["Company Name"],
+                'customerAge': custom_data.iloc[i].astype("string")["Customer Age"],
+                'marketerName': custom_data.iloc[i]["Marketer Name"],
+                'customerName': custom_data.iloc[i]["Customer Name"],
+                'address': custom_data.iloc[i]["Email"],
+                'customAttributes': custom_cols
+            }
+            emails.append(email)
+        
+        url = "http://127.0.0.1:8080/generate-email"
+
+        for email in emails:
+            res = requests.post(url, json = email)
+            subject = res.json()['subject']
+            content = res.json()['content']
+            address = email['address']
+            use_gmail_to_send(subject, content, address)
+        
+        return jsonify({}), 200
+
+
+    except Exception as e:
+        return jsonify({'error': f'An error occured: {e}'}), 500
 
 @app.route('/generate-email', methods=['POST'])
 def generate_email():

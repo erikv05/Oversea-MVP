@@ -32,8 +32,4 @@ for email in emails:
     subject = res.json()['subject']
     content = res.json()['content']
     address = email['address']
-    #TODO: remove test code
-    # subject = 'test subject'
-    # content = 'test content'
-    # address = 'erikvank05@gmail.com'
     send_email(subject, content, address)
